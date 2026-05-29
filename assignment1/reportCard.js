@@ -45,10 +45,21 @@ class Student {
     }
 }
 
-const testStudent = new Student("Alice", [85, 92, 78]);
+// const testStudent = new Student("Alice", [85, 92, 78]);
 
-console.log("Student Name:", testStudent.name);
-console.log("Scores Array:", testStudent.score);
-console.log("Calculated Average:", testStudent.average);
-console.log("Final Grade:", testStudent.letterGrade);
-console.log("Score Summary:", testStudent.summary());
+// console.log("Student Name:", testStudent.name);
+// console.log("Scores Array:", testStudent.score);
+// console.log("Calculated Average:", testStudent.average);
+// console.log("Final Grade:", testStudent.letterGrade);
+// console.log("Score Summary:", testStudent.summary());
+
+const studentName = process.argv[2];
+const scoreStrings = process.argv.slice(3);
+if(scoreStrings.length < 3){
+    console.log("Provide at least 3 numbers");
+    process.exit(1);
+}
+const studentScore = scoreStrings.map(Number);
+const testStudent = new Student(studentName, studentScore);
+console.log("Terminal Name:", testStudent.name);
+console.log("Terminal Scores:", testStudent.score);
