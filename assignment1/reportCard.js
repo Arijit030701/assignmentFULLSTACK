@@ -1,3 +1,4 @@
+const fs = require('fs');
 class Student {
     constructor(studentName, examScore){
         this.name = studentName;
@@ -69,24 +70,58 @@ function getRemark(grade){
 // console.log("Score Summary:", testStudent.summary());
 
 
-const studentName = process.argv[2];
-const scoreStrings = process.argv.slice(3);
-if(scoreStrings.length < 3){
-    console.log("Provide at least 3 numbers");
-    process.exit(1);
-}
-const studentScore = scoreStrings.map(Number);
-const testStudent = new Student(studentName, studentScore);
+// const studentName = process.argv[2];
+// const scoreStrings = process.argv.slice(3);
+// if(scoreStrings.length < 3){
+//     console.log("Provide at least 3 numbers");
+//     process.exit(1);
+// }
+// const studentScore = scoreStrings.map(Number);
+// const testStudent = new Student(studentName, studentScore);
 // console.log("Terminal Name:", testStudent.name);
 // console.log("Terminal Scores:", testStudent.score);
-const valueHighLow = testStudent.summary();
-const finalGrade = testStudent.letterGrade;
-const Remark = getRemark(finalGrade);
-const PorF = testStudent.average >= 60 ? "Pass" : "Fail";
+// const valueHighLow = testStudent.summary();
+// const finalGrade = testStudent.letterGrade;
+// const Remark = getRemark(finalGrade);
+// const PorF = testStudent.average >= 60 ? "Pass" : "Fail";
 
-const [score1, score2, ...remaining] = testStudent.score;
-console.log(`
-                     YOUR REPORT CARD
+// const [score1, score2, ...remaining] = testStudent.score;
+
+
+// console.log(`
+//                      YOUR REPORT CARD
+//             ___________________________________
+//             Name: ${testStudent.name}   
+//             Score: ${testStudent.score}  
+//             ------------------------------------
+//             Score1: ${score1}
+//             Score2: ${score2}
+//             remaining: ${remaining}
+//             Average: ${testStudent.average.toFixed(1)} 
+//             Grade: ${finalGrade}
+//             Highest: ${valueHighLow.highest} 
+//             Lowest: ${valueHighLow.lowest}  
+//             Remark: ${Remark}
+//             Status: ${PorF}
+//             ____________________________________
+//             `)
+const Data = fs.readFileSync('Students.json', 'utf-8');
+const ListOfStudents = JSON.parse(Data);
+let highestAvg = 0;
+let firstRank = "";
+for(let i = 0; i < ListOfStudents.length; i++){
+    const student__ = ListOfStudents[i];
+    const testStudent = new Student(student__.name, student__.score);
+
+    const valueHighLow = testStudent.summary();
+    const finalGrade = testStudent.letterGrade;
+    const Remark = getRemark(finalGrade);
+    const PorF = testStudent.average >= 60 ? "Pass" : "Fail";
+
+    const [score1, score2, ...remaining] = testStudent.score;
+
+    console.log(`
+            ${testStudent.name} REPORT CARD
             ___________________________________
             Name: ${testStudent.name}   
             Score: ${testStudent.score}  
@@ -102,4 +137,14 @@ console.log(`
             Status: ${PorF}
             ____________________________________
             `)
+
+    if(testStudent.average > highestAvg){
+        highestAvg = testStudent.average;
+        firstRank = testStudent.name;
+    }
+
+}
+
+console.log("=========================================")
+console.log(`First Rank: ${firstRank} (${highestAvg.toFixed(1)})`);
 
