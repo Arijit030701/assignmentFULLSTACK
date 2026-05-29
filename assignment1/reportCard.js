@@ -45,6 +45,21 @@ class Student {
     }
 }
 
+function getRemark(grade){
+    switch(grade){
+        case 'A':
+            return "Great Work";
+        case 'B' :
+            return "Nice Work";
+        case 'C':
+            return "Work Hard";    
+        case 'D':
+            return "Don't insult our college";    
+        case 'F':
+            return "Fail";    
+    }
+}
+
 // const testStudent = new Student("Alice", [85, 92, 78]);
 
 // console.log("Student Name:", testStudent.name);
@@ -52,6 +67,7 @@ class Student {
 // console.log("Calculated Average:", testStudent.average);
 // console.log("Final Grade:", testStudent.letterGrade);
 // console.log("Score Summary:", testStudent.summary());
+
 
 const studentName = process.argv[2];
 const scoreStrings = process.argv.slice(3);
@@ -61,5 +77,29 @@ if(scoreStrings.length < 3){
 }
 const studentScore = scoreStrings.map(Number);
 const testStudent = new Student(studentName, studentScore);
-console.log("Terminal Name:", testStudent.name);
-console.log("Terminal Scores:", testStudent.score);
+// console.log("Terminal Name:", testStudent.name);
+// console.log("Terminal Scores:", testStudent.score);
+const valueHighLow = testStudent.summary();
+const finalGrade = testStudent.letterGrade;
+const Remark = getRemark(finalGrade);
+const PorF = testStudent.average >= 60 ? "Pass" : "Fail";
+
+const [score1, score2, ...remaining] = testStudent.score;
+console.log(`
+                     YOUR REPORT CARD
+            ___________________________________
+            Name: ${testStudent.name}   
+            Score: ${testStudent.score}  
+            ------------------------------------
+            Score1: ${score1}
+            Score2: ${score2}
+            remaining: ${remaining}
+            Average: ${testStudent.average.toFixed(1)} 
+            Grade: ${finalGrade}
+            Highest: ${valueHighLow.highest} 
+            Lowest: ${valueHighLow.lowest}  
+            Remark: ${Remark}
+            Status: ${PorF}
+            ____________________________________
+            `)
+
