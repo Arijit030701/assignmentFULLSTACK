@@ -131,7 +131,7 @@ for(let i = 0; i < ListOfStudents.length; i++){
             remaining: ${remaining}
             Average: ${testStudent.average.toFixed(1)} 
             Grade: ${finalGrade}
-            Highest: ${valueHighLow.highest} 
+            Higihest: ${valueHighLow.highest} 
             Lowest: ${valueHighLow.lowest}  
             Remark: ${Remark}
             Status: ${PorF}
