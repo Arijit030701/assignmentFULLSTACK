@@ -14,16 +14,16 @@ function extractRollNumber(qrString) {
         return null;
     }
 
-    let validRollNumber = null;
+    // let validRollNumber = null;
 
-    for (let i = 0; i < allMatches.length; i++) {
-        const numString = allMatches[i];
-        if (isRegistered(numString)) {
-            validRollNumber = numString;
-            break; 
-        }
-    }
-
+    // for (let i = 0; i < allMatches.length; i++) {
+    //     const numString = allMatches[i];
+    //     if (isRegistered(numString)) {
+    //         validRollNumber = numString;
+    //         break; 
+    //     }
+    // }
+    const validRollNumber = allMatches.find(numString => isRegistered(numString));
     return validRollNumber || null;
 }
 
@@ -32,7 +32,7 @@ module.exports = { extractRollNumber, isRegistered };
 if (require.main === module) {
     console.log("--- Testing P2c: isRegistered ---");
     console.log("240123 is valid:", isRegistered('240123')); 
-    console.log("250000 is valid:", isRegistered('250000')); 
+    console.log("250150 is valid:", isRegistered('250150')); 
 
     console.log("\n--- Testing P2b: extractRollNumber ---");
     
