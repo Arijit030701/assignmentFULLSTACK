@@ -110,3 +110,46 @@ bot.onText(/\/report/, (msg) => {
 
     bot.sendMessage(chatId, reportMessage, { parse_mode: 'Markdown' });
 });
+
+bot.onText(/\/export/, async (msg) => {
+    const chatId = msg.chat.id;
+    const filePath = './attendance_export.csv';
+
+    try {
+        if (!fs.existsSync('./attendance.json')) {
+            return bot.sendMessage(chatId, "No attendance records found to export yet!");
+        }
+
+        const rawData = fs.readFileSync('./attendance.json', 'utf8');
+        const db = JSON.parse(rawData);
+
+        if (Object.keys(db).length === 0) {
+            return bot.sendMessage(chatId, "The attendance database is currently empty.");
+        }
+
+        const csvHeader = 'RollNumber,Timestamp\n';
+
+        const csvRows = Object.entries(db)
+            .map(([rollNumber, timestamp]) => `${rollNumber},${timestamp}`)
+            .join('\n');
+
+        const fullCsvContent = csvHeader + csvRows;
+
+        fs.writeFileSync(filePath, fullCsvContent);
+
+        bot.sendMessage(chatId, "Generating your CSV spreadsheet");
+
+        await bot.sendDocument(chatId, filePath, {}, {
+            filename: 'IITK_Attendance_Report.csv',
+            contentType: 'text/csv'
+        });
+
+    } catch (error) {
+        console.error("Export Error:", error);
+        bot.sendMessage(chatId, "A critical system error occurred while generating the CSV file.");
+    } finally {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+    }
+});
