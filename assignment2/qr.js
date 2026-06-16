@@ -8,7 +8,7 @@ async function decodeQR(imagePath) {
     const result = jsqr(data, width, height);
 
     if (!result) {
-        throw new Error('No QR code found');
+        return null;
     }
 
     return result.data;
