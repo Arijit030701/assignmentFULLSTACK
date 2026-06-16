@@ -1,5 +1,4 @@
-// P2a: Document your QR string
-// RAW STRING: "IITK-STUDENT-PROFILE: NAME=Arijit; DEPT=CE; ID_NO=240175;"
+// "IITK-STUDENT-PROFILE: NAME=Arijit; DEPT=CE; ID_NO=240175;"
 
 function isRegistered(rollNumber) {
     const num = Number(rollNumber);
