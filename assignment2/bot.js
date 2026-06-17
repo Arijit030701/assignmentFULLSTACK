@@ -1,4 +1,13 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+
+// 2. Your existing debug line to verify it works
+console.log("DEBUG ENVIRONMENT:", process.env.BOT_TOKEN);
+
+// 3. Your existing guard check
+if (!process.env.BOT_TOKEN) {
+    throw new Error('BOT_TOKEN is missing in your .env file!');
+} // Add this line!
 const fs = require('fs');
 const { decodeQR } = require('./qr');
 const { extractRollNumber } = require('./parser');
