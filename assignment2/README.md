@@ -37,7 +37,7 @@ cd assignmentFULLSTACK/assignment2
 ```
 ### 2. Install dependencies
 ```bash
-npm install npm install dotenv jimp jsqr node-telegram-bot-api@0.65.1
+npm install dotenv jimp jsqr node-telegram-bot-api@0.65.1
 ```
 ### 3. Create bot in telegram.
 #### 1. Search @BotFather in telegram.
