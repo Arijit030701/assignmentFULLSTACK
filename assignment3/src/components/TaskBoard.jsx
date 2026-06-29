@@ -11,6 +11,7 @@ const groupTasks = (tasks) => {
             return;
         }
         const taskDate = new Date(task.dueDate);
+        taskDate.setHours(0, 0, 0, 0);
         if (taskDate < today) {
             groups.overdue.push(task);
         } else if (taskDate.getTime() === today.getTime()) {
@@ -28,6 +29,23 @@ export function TaskBoard() {
     // 2. Our short-term memory (What is currently typed in the input box)
     const [newTaskTitle, setNewTaskTitle] = useState('');
 
+    const [newTaskDate, setNewTaskDate] = useState(null);
+    const [showPicker, setShowPicker] = useState(false);
+    const [showCustomPicker, setShowCustomPicker] = useState(false);
+
+    const handleQuickDate = (daysToAdd) => {
+        const date = new Date();
+        date.setDate(date.getDate() + daysToAdd);
+        setNewTaskDate(date.toISOString());
+        setShowPicker(false); // Hide the menu after clicking
+    };
+    const handleCustomDateChange = (e) => {
+        const date = new Date(e.target.value);
+        setNewTaskDate(date.toISOString());
+        setShowPicker(false);
+        setShowCustomPicker(false);
+    };
+
     //this function runs when i submit the form
     const handleAddTask = (e) => {
         e.preventDefault();
@@ -36,11 +54,15 @@ export function TaskBoard() {
         const newTask ={
             id: crypto.randomUUID(), 
             title: newTaskTitle.trim(),
-            dueDate: null,
+            dueDate: newTaskDate,
             isCompleted: false
         }
         setTasks([...tasks, newTask]);
+
         setNewTaskTitle('');
+        setNewTaskDate(null);
+        setShowPicker(false);
+        setShowCustomPicker(false);
     };
     const handleDeleteTask = (taskId) => {
         setTasks(tasks.filter(task => task.id !== taskId));
@@ -68,7 +90,15 @@ export function TaskBoard() {
                                 alignItems: 'center'
                             }}
                         >
-                            <strong>{task.title}</strong>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <strong>{task.title}</strong>
+                                {/* Render the date on the task if it exists */}
+                                {task.dueDate && (
+                                    <small style={{ color: '#888' }}>
+                                        {new Date(task.dueDate).toLocaleDateString()}
+                                    </small>
+                                )}
+                            </div>
                             <button 
                                 onClick={() => handleDeleteTask(task.id)}
                                 style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', fontWeight: 'bold' }}
@@ -94,6 +124,39 @@ return (
                 onChange={(e) => setNewTaskTitle(e.target.value)}
                 style={{ width: '100%', padding: '10px', fontSize: '16px' }}
             />
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    
+            {/* State 1: Default or Date Selected (Shows Button) */}
+            {!showPicker && !showCustomPicker && (
+                <button 
+                    type="button" 
+                    onClick={() => setShowPicker(true)}
+                    style={{ cursor: 'pointer', padding: '5px 10px' }}
+                >
+                    📅 {newTaskDate ? new Date(newTaskDate).toLocaleDateString() : 'Add Date'}
+                </button>
+            )}
+            {showPicker && !showCustomPicker && (
+                        <>
+                            <button type="button" onClick={() => handleQuickDate(0)}>Today</button>
+                            <button type="button" onClick={() => handleQuickDate(1)}>Tomorrow</button>
+                            <button type="button" onClick={() => handleQuickDate(7)}>This Week</button>
+                            <button type="button" onClick={() => setShowCustomPicker(true)}>Custom</button>
+                            <button type="button" onClick={() => setShowPicker(false)} style={{ color: 'red' }}>Cancel</button>
+                        </>
+            )}  
+            {showCustomPicker && (
+                <>
+                    <input 
+                        type="date" 
+                        onChange={handleCustomDateChange} 
+                        style={{ padding: '5px' }}
+                    />
+                    <button type="button" onClick={() => { setShowCustomPicker(false); setShowPicker(false); }} style={{ color: 'red' }}>Cancel</button>
+                </>
+            )}
+                    
+        </div>      
         </form>
         <TaskSection title="Overdue" tasksInGroup={groupedTasks.overdue} />
             <TaskSection title="Today" tasksInGroup={groupedTasks.today} />
