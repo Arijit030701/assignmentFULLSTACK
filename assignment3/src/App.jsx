@@ -1,6 +1,7 @@
 import { TaskBoard } from './components/TaskBoard';
 import { GoalTracker } from './components/GoalTracker';
-import { FocusTimer } from './components/FocusTimer'; // 1. Import it
+import { FocusTimer } from './components/FocusTimer';
+import { MoodBoard } from './components/MoodBoard'; // 1. Import it
 
 function App() {
   return (
@@ -15,8 +16,12 @@ function App() {
 
       <hr style={{ margin: '40px 0', borderColor: '#333' }} />
       
-      {/* 2. Add it here as a sibling */}
       <FocusTimer />
+      
+      <hr style={{ margin: '40px 0', borderColor: '#333' }} />
+      
+      {/* 2. Add it here */}
+      <MoodBoard /> 
       
     </div>
   );
