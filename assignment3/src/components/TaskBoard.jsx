@@ -31,9 +31,9 @@ const groupTasks = (tasks) => {
     return groups;
 }
 
-export function TaskBoard() {
+export function TaskBoard({ tasks, setTasks }) {
     // 1. Core Data
-    const [tasks, setTasks] = useLocalStorage('cipher-tasks', []);
+    // const [tasks, setTasks] = useLocalStorage('cipher-tasks', []);
     const [subtasks, setSubtasks] = useLocalStorage('cipher-subtasks', []); 
     
     // 2. New Task UI States
