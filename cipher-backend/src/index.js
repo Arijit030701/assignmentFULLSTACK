@@ -21,6 +21,8 @@ app.get('/', (req, res) => {
     res.json({ message: 'Cipher Backend MVP is running smoothly!' });
 });
 
+app.use(errorHandler);
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
