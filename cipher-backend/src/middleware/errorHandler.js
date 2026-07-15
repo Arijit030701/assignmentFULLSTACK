@@ -1,6 +1,6 @@
 // This is the Global Error Handler
 export const errorHandler = (err, req, res, next) => {
-    console.error("🔥 Error caught by Global Handler:", err);
+    console.error("Error caught by Global Handler:", err);
 
     const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
     
