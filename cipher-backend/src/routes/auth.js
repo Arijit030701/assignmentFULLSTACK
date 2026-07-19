@@ -11,6 +11,7 @@ const prisma = new PrismaClient();
 
 // P1a: Register Route
 router.post('/register', validate(registerSchema), asyncHandler(async (req, res) => {
+    console.log("Incoming Data:", req.body);
     const { email, password } = req.body;
 
     // Check if user already exists

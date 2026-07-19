@@ -26,7 +26,7 @@ router.post('/', validate(goalSchema), asyncHandler(async (req, res) => {
 // ==========================================
 // P4b: Get Goals (GET /api/goals)
 // ==========================================
-rourouter.get('/', asyncHandler(async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     const goals = await prisma.goal.findMany({
         where: { userId: req.user.userId },
         orderBy: { createdAt: 'desc' }

@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import taskRoutes from './routes/tasks.js';
 import goalRoutes from './routes/goals.js'; // 1. ADD THIS IMPORT
+import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
