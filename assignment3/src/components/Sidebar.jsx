@@ -18,6 +18,7 @@ export function Sidebar({ activeSection, setActiveSection }) {
             <button style={navButtonStyle('goals')} onClick={() => setActiveSection('goals')}>Goals</button>
             <button style={navButtonStyle('timer')} onClick={() => setActiveSection('timer')}>Focus Timer</button>
             <button style={navButtonStyle('mood')} onClick={() => setActiveSection('mood')}>Mood Board</button>
+            <button style={navButtonStyle('ai')} onClick={() => setActiveSection('ai')}>✨ AI Builder</button>
         </nav>
     );
 }

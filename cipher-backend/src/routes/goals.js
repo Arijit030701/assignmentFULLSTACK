@@ -14,11 +14,18 @@ router.use(verifyToken);
 // P4a: Create Goal (POST /api/goals)
 // ==========================================
 router.post('/', validate(goalSchema), asyncHandler(async (req, res) => {
-    const { title, description } = req.body;
+    const { title, progress } = req.body;
 
     const newGoal = await prisma.goal.create({
-        data: { title, description, userId: req.user.userId }
+        data: { 
+            title, 
+            progress: progress || 0, 
+            targetDate: new Date(), 
+            userId: req.user.userId 
+        }
     });
+
+    console.log(`New Goal added ${newGoal.title}`);
 
     res.status(201).json(newGoal);
 }));
@@ -40,7 +47,7 @@ router.get('/', asyncHandler(async (req, res) => {
 // ==========================================
 router.patch('/:id', validate(goalSchema), asyncHandler(async (req, res) => {
     const goalId = req.params.id; 
-    const { title, description, isCompleted } = req.body;
+    const { title, progress, isCompleted } = req.body;
 
     const existingGoal = await prisma.goal.findFirst({
         where: { id: goalId, userId: req.user.userId }
@@ -53,9 +60,9 @@ router.patch('/:id', validate(goalSchema), asyncHandler(async (req, res) => {
 
     const updatedGoal = await prisma.goal.update({
         where: { id: goalId },
-        data: { title, description, isCompleted }
+        data: { title, progress, isCompleted }
     });
-
+    console.log(`Updated ${updatedGoal.title} to ${updatedGoal.progress}`);
     res.status(200).json(updatedGoal);
 }));
 

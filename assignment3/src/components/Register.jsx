@@ -10,7 +10,7 @@ export default function Register({setToken, switchToLogin}){
     const handleRegister = async (e) => {
         e.preventDefault(); 
         setError(null);
-
+        
         try {
             const response = await axios.post('http://localhost:3000/api/auth/register', {
                 name,

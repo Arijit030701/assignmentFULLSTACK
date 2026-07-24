@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import { GoalCard } from './GoalCard';
+import axios from 'axios';
 
-export function GoalTracker() {
-    const [goals, setGoals] = useLocalStorage('cipher-goals', []);
+export function GoalTracker({ goals, setGoals, token }) {
+    
     const [newGoalTitle, setNewGoalTitle] = useState('');
     const [editingGoalId, setEditingGoalId] = useState(null);
     const [editGoalText, setEditGoalText] = useState("");
@@ -13,20 +13,50 @@ export function GoalTracker() {
         if (editingGoalId && editInputRef.current) editInputRef.current.focus();
     }, [editingGoalId]);
     
-    const handleAddGoal = (e) => {
+    const handleAddGoal = async (e) => {
         e.preventDefault();
         if (!newGoalTitle.trim()) return;
-        setGoals([...goals, { id: crypto.randomUUID(), title: newGoalTitle.trim(), progress: 0 }]);
-        setNewGoalTitle('');
+        try{
+            const response = await axios.post('http://localhost:3000/api/goals', 
+                { title: newGoalTitle.trim(), progress: 0 },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setGoals([...goals, response.data]);
+            setNewGoalTitle('');
+        }catch(error){
+            console.error("Failed to add goal:", error);
+        }
     };
 
-    const saveGoal = (goalId) => {
-        setGoals(goals.map(g => g.id === goalId ? { ...g, title: editGoalText.trim() } : g));
-        setEditingGoalId(null);
+    const saveGoal = async (goalId) => {
+        if(!editGoalText.trim()){
+            setEditingGoalId(null);
+            return;
+        }
+        try{
+            await axios.patch(`http://localhost:3000/api/goals/${goalId}`,
+                { title: editGoalText.trim() },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setGoals(goals.map(g => g.id === goalId ? { ...g, title: editGoalText.trim() } : g));
+            setEditingGoalId(null);
+        } catch (error) {
+            console.error("Failed to update goal title:", error);
+        }
     };
 
-    const handleUpdateProgress = (goalId, newProgress) => {
-        setGoals(goals.map(g => g.id === goalId ? { ...g, progress: newProgress } : g));
+    const handleUpdateProgress = async (goalId, newProgress) => {
+        try {
+            await axios.patch(`http://localhost:3000/api/goals/${goalId}`,
+                { progress: newProgress },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setGoals(goals.map(g => g.id === goalId ? { ...g, progress: newProgress } : g));
+        } catch (error) {
+            console.error("Failed to update progress:", error);
+        }
     };
 
     return (

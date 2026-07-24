@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-
+import axios from 'axios';
 // --- THE PURE FUNCTION ---
 const groupTasks = (tasks) => {
     const groups = { overdue: [], today: [], upcoming: [], noDate: [], completed: [] };
@@ -31,10 +31,10 @@ const groupTasks = (tasks) => {
     return groups;
 }
 
-export function TaskBoard({ tasks, setTasks }) {
+export function TaskBoard({ tasks, setTasks, token }) {
     // 1. Core Data
     // const [tasks, setTasks] = useLocalStorage('cipher-tasks', []);
-    const [subtasks, setSubtasks] = useLocalStorage('cipher-subtasks', []); 
+   
     
     // 2. New Task UI States
     const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -63,43 +63,62 @@ export function TaskBoard({ tasks, setTasks }) {
     }, [editingTaskId]);
 
     // --- PARENT TASK FUNCTIONS ---
-    const handleAddTask = (e) => {
+    const handleAddTask = async (e) => {
         e.preventDefault();
         if(newTaskTitle.trim() === '') return;
         
-        const newTask = {
-            id: crypto.randomUUID(), 
-            title: newTaskTitle.trim(),
-            dueDate: newTaskDate,
-            isCompleted: false
+        try{
+            const response = await axios.post('http://localhost:3000/api/tasks', 
+                { title: newTaskTitle.trim() },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setTasks([...tasks, response.data]);
+            setNewTaskTitle('');
+            setNewTaskDate(null);
+            setShowPicker(false);
+            setShowCustomPicker(false);
+        }catch(error){
+            console.error("Failed to add task: ", error);
         }
-        setTasks([...tasks, newTask]);
-        setNewTaskTitle('');
-        setNewTaskDate(null);
-        setShowPicker(false);
-        setShowCustomPicker(false);
     };
 
-    const handleDeleteTask = (taskId) => {
-        setTasks(tasks.filter(task => task.id !== taskId));
-        // Flat state deletion: Delete all subtasks where the parentId matches the deleted task
-        setSubtasks(subtasks.filter(subtask => subtask.parentId !== taskId));
+    const handleDeleteTask = async (taskId) => {
+
+        try{
+            await axios.delete(`http://localhost:3000/api/tasks/${taskId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTasks(tasks.filter(task => task.id !== taskId));
+        }catch(error){
+            console.error("Failed to delete task:", error);
+        }
     };
 
-    const toggleTaskCompletion = (task) => {
-        if (task.isCompleted) {
-            setTasks(tasks.map(t => t.id === task.id ? { ...t, isCompleted: false } : t));
-            return;
+    const toggleTaskCompletion = async (task) => {
+        const newStatus = !task.isCompleted;
+
+        try{
+            await axios.patch(`http://localhost:3000/api/tasks/${task.id}`, 
+                { isCompleted: newStatus },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if(!newStatus){
+                setTasks(tasks.map(t => t.id === task.id ? { ...t, isCompleted: false } : t));
+                return;
+            }
+
+            setFadingTaskIds(prev => [...prev, task.id]);
+
+            setTimeout(() => {
+                setTasks(currentTasks => currentTasks.map(t =>
+                    t.id === task.id ? { ...t, isCompleted: true } : t
+                ));
+                setFadingTaskIds(prev => prev.filter(id => id !== task.id));
+            }, 400); 
+        }catch (error){
+            console.error("Failed to update task status:", error);
         }
-
-        setFadingTaskIds(prev => [...prev, task.id]);
-
-        setTimeout(() => {
-            setTasks(currentTasks => currentTasks.map(t =>
-                t.id === task.id ? { ...t, isCompleted: true } : t
-            ));
-            setFadingTaskIds(prev => prev.filter(id => id !== task.id));
-        }, 400); 
     };
 
     const handleQuickDate = (daysToAdd) => {
@@ -122,25 +141,26 @@ export function TaskBoard({ tasks, setTasks }) {
         setEditTitleText(task.title);
     };
 
-    const saveTitle = (taskId) => {
+    const saveTitle = async (taskId) => {
         if (editTitleText.trim() === '') {
             setEditingTaskId(null); 
             return;
         }
-        setTasks(tasks.map(task =>
-            task.id === taskId ? { ...task, title: editTitleText.trim() } : task
-        ));
-        setEditingTaskId(null); 
-    };
+        try {
+            // 1. Tell PostgreSQL the new title
+            await axios.patch(`http://localhost:3000/api/tasks/${taskId}`, 
+                { title: editTitleText.trim() },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
 
-    const updateTaskDate = (taskId, daysToAdd) => {
-        const newDate = new Date();
-        newDate.setDate(newDate.getDate() + daysToAdd);
-        
-        setTasks(tasks.map(task =>
-            task.id === taskId ? { ...task, dueDate: newDate.toISOString() } : task
-        ));
-        setEditingDateId(null); 
+            // 2. Update the React UI
+            setTasks(tasks.map(task =>
+                task.id === taskId ? { ...task, title: editTitleText.trim() } : task
+            ));
+            setEditingTaskId(null); 
+        } catch (error) {
+            console.error("Failed to update title:", error);
+        }
     };
 
     // --- NEW: SUBTASK FUNCTIONS (P1f) ---
@@ -150,30 +170,76 @@ export function TaskBoard({ tasks, setTasks }) {
         );
     };
 
-    const handleAddSubtask = (taskId, e) => {
+    const handleAddSubtask = async (taskId, e) => {
         e.preventDefault();
         const titleText = newSubtaskTitles[taskId]?.trim();
         if (!titleText) return;
 
-        const newSubtask = {
-            id: crypto.randomUUID(),
-            parentId: taskId, // The Foreign Key
-            title: titleText,
-            isCompleted: false
-        };
+        try {
+            // 1. Send the data to your PostgreSQL Database
+            const response = await axios.post(`http://localhost:3000/api/tasks/${taskId}/subtasks`, 
+                { title: titleText },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
 
-        setSubtasks([...subtasks, newSubtask]);
-        setNewSubtaskTitles({ ...newSubtaskTitles, [taskId]: '' }); // Clear just this specific input
+            // 2. Update the specific task inside the main 'tasks' state
+            setTasks(tasks.map(task => 
+                task.id === taskId 
+                    ? { ...task, subtasks: [...(task.subtasks || []), response.data] }
+                    : task
+            ));
+
+            // 3. Clear the input field
+            setNewSubtaskTitles({ ...newSubtaskTitles, [taskId]: '' }); 
+        } catch (error) {
+            console.error("Failed to add subtask:", error);
+        }
     };
 
-    const toggleSubtaskCompletion = (subtaskId) => {
-        setSubtasks(subtasks.map(st => 
-            st.id === subtaskId ? { ...st, isCompleted: !st.isCompleted } : st
-        ));
+    const toggleSubtaskCompletion = async (taskId, subtaskId) => {
+        // Find the current status so we can flip it
+        const parentTask = tasks.find(t => t.id === taskId);
+        const subtask = parentTask.subtasks.find(st => st.id === subtaskId);
+        const newStatus = !subtask.isCompleted;
+
+        try {
+            // 1. Tell the backend to update it
+            await axios.patch(`http://localhost:3000/api/tasks/subtasks/${subtaskId}`, 
+                { isCompleted: newStatus },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // 2. Update the React UI
+            setTasks(tasks.map(task => 
+                task.id === taskId ? { 
+                    ...task, 
+                    subtasks: task.subtasks.map(st => 
+                        st.id === subtaskId ? { ...st, isCompleted: newStatus } : st
+                    ) 
+                } : task
+            ));
+        } catch (error) {
+            console.error("Failed to update subtask status:", error);
+        }
     };
 
-    const deleteSubtask = (subtaskId) => {
-        setSubtasks(subtasks.filter(st => st.id !== subtaskId));
+    const deleteSubtask = async (taskId, subtaskId) => {
+        try {
+             // 1. Tell the backend to delete it
+             await axios.delete(`http://localhost:3000/api/tasks/subtasks/${subtaskId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // 2. Update the React UI
+            setTasks(tasks.map(task => 
+                task.id === taskId ? { 
+                    ...task, 
+                    subtasks: task.subtasks.filter(st => st.id !== subtaskId) 
+                } : task
+            ));
+        } catch (error) {
+            console.error("Failed to delete subtask:", error);
+        }
     };
 
     const groupedTasks = groupTasks(tasks);
@@ -209,7 +275,7 @@ export function TaskBoard({ tasks, setTasks }) {
                             const isExpanded = expandedTaskIds.includes(task.id);
 
                             // P1f: Derived State for Subtasks (Calculated on the fly)
-                            const taskSubtasks = subtasks.filter(st => st.parentId === task.id);
+                            const taskSubtasks = task.subtasks || [];
                             const completedCount = taskSubtasks.filter(st => st.isCompleted).length;
                             const totalCount = taskSubtasks.length;
 
@@ -305,13 +371,13 @@ export function TaskBoard({ tasks, setTasks }) {
                                                         <input 
                                                             type="checkbox" 
                                                             checked={st.isCompleted} 
-                                                            onChange={() => toggleSubtaskCompletion(st.id)} 
+                                                            onChange={() => toggleSubtaskCompletion(task.id, st.id)} 
                                                         />
                                                         <span style={{ textDecoration: st.isCompleted ? 'line-through' : 'none', color: st.isCompleted ? '#666' : 'inherit' }}>
                                                             {st.title}
                                                         </span>
                                                     </div>
-                                                    <button onClick={() => deleteSubtask(st.id)} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontSize: '0.8rem' }}>x</button>
+                                                    <button onClick={() => deleteSubtask(task.id, st.id)} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontSize: '0.8rem' }}>x</button>
                                                 </div>
                                             ))}
 

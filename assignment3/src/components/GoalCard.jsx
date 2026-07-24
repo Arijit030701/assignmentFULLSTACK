@@ -1,5 +1,5 @@
 export function GoalCard({ goal, onUpdateProgress }) {
-    const progress = goal.progress || 0;
+    const progress = goal.progress ?? 0;
 
     const updateProgress = (amount) => {
         const newValue = progress + amount;

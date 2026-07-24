@@ -3,9 +3,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import taskRoutes from './routes/tasks.js';
-import goalRoutes from './routes/goals.js'; // 1. ADD THIS IMPORT
+import goalRoutes from './routes/goals.js'; 
 import { errorHandler } from './middleware/errorHandler.js';
-
+import focusRoutes from './routes/focus.js';
+import aiRoutes from './routes/ai.js';
 dotenv.config();
 
 const app = express();
@@ -16,7 +17,9 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
-app.use('/api/goals', goalRoutes); // 2. ADD THIS LINE
+app.use('/api/goals', goalRoutes); 
+app.use('/api/focus', focusRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Cipher Backend MVP is running smoothly!' });

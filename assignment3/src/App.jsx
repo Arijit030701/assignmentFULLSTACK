@@ -10,7 +10,7 @@ function App() {
     <div style={{ background: '#333', color: 'white', minHeight: '100vh' }}>
       
       {token ? (
-        <Dashboard /> 
+        <Dashboard token={token} setToken={setToken} /> 
       ) : (
         isLoginView ? (
           <Login 
